@@ -10,9 +10,15 @@ namespace ClassLibraryXunitTest
     public class Class1
     {
         [Fact]
-        public void Test()
+        public void AlwaysTrue_Test()
         {
-            Assert.True(true);
+            Assert.True(true, "Always true");
+        }
+
+        [Fact]
+        public void AlwaysFalse_Test()
+        {
+            Assert.True(false, "Always false");
         }
     }
 }
