@@ -29,12 +29,18 @@ namespace ScAppXunitRunner
                 string fullName = path + "\\ClassLibraryXunitTest.dll"; //full path is needed
                 string typeName = null;
 
-                using (var runner = AssemblyRunner.WithAppDomain(fullName))
+                using (AssemblyRunner runner = AssemblyRunner.WithAppDomain(fullName)) // TODO, test WithoutAppDomain();
                 {
                     runner.OnDiscoveryComplete = OnDiscoveryComplete;
                     runner.OnExecutionComplete = OnExecutionComplete;
+                    runner.OnTestStarting = OnTestStarting;
                     runner.OnTestFailed = OnTestFailed;
                     runner.OnTestSkipped = OnTestSkipped;
+                    runner.OnTestPassed = OnTestPassed;
+                    runner.OnTestOutput = OnTestOutput;
+                    runner.OnTestFinished = OnTestFinished;
+                    runner.OnDiagnosticMessage = OnDiagnosticMessage;
+                    runner.OnErrorMessage = OnErrorMessage;
 
                     Console.WriteLine("Discovering...");
                     runner.Start(typeName);
@@ -62,24 +68,31 @@ namespace ScAppXunitRunner
         static void OnExecutionComplete(ExecutionCompleteInfo info)
         {
             lock (consoleLock)
-            { 
+            {
                 log.Debug($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
             }
 
             finished.Set();
         }
 
+        static void OnTestStarting(TestStartingInfo info)
+        {
+            lock (consoleLock)
+            {
+                //log.Debug($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
+                log.Debug("TODO: OnTestStarting");
+            }
+        }
+
         static void OnTestFailed(TestFailedInfo info)
         {
             lock (consoleLock)
             {
-                //Console.ForegroundColor = ConsoleColor.Red;
-
                 log.Debug("[FAIL] {0}: {1}", info.TestDisplayName, info.ExceptionMessage);
                 if (info.ExceptionStackTrace != null)
+                {
                     log.Debug(info.ExceptionStackTrace);
-
-                //Console.ResetColor();
+                }
             }
 
             result = 1;
@@ -89,9 +102,47 @@ namespace ScAppXunitRunner
         {
             lock (consoleLock)
             {
-                //Console.ForegroundColor = ConsoleColor.Yellow;
                 log.Debug("[SKIP] {0}: {1}", info.TestDisplayName, info.SkipReason);
-                //Console.ResetColor();
+            }
+        }
+
+        static void OnTestPassed(TestPassedInfo info)
+        {
+            lock (consoleLock)
+            {
+                log.Debug("TODO: OnTestPassed");
+            }
+        }
+
+        static void OnTestOutput(TestOutputInfo info)
+        {
+            lock (consoleLock)
+            {
+                log.Debug("TODO: OnTestOutput");
+            }
+        }
+
+        static void OnTestFinished(TestFinishedInfo info)
+        {
+            lock (consoleLock)
+            {
+                log.Debug("TODO: OnTestFinished");
+            }
+        }
+
+        static void OnDiagnosticMessage(DiagnosticMessageInfo info)
+        {
+            lock (consoleLock)
+            {
+                log.Debug("TODO: OnDiagnosticMessage");
+            }
+        }
+
+        static void OnErrorMessage(ErrorMessageInfo info)
+        {
+            lock (consoleLock)
+            {
+                log.Debug("TODO: OnErrorMessage");
             }
         }
     }
