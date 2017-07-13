@@ -13,11 +13,13 @@ namespace ClassLibraryXunitTest
         public void AlwaysTrue_Test()
         {
             Assert.True(true, "Always true");
+            Assert.True(true, "Always true");
         }
 
         [Fact]
         public void AlwaysFalse_Test()
         {
+            Assert.True(true, "Always true");
             Assert.True(false, "Always false");
         }
     }
