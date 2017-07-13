@@ -26,10 +26,7 @@ namespace ScAppXunitRunner
                     runner.OnTestFailed = testFramework.OnTestFailed;
                     runner.OnTestSkipped = testFramework.OnTestSkipped;
                     runner.OnTestPassed = testFramework.OnTestPassed;
-                    runner.OnTestOutput = testFramework.OnTestOutput;
                     runner.OnTestFinished = testFramework.OnTestFinished;
-                    runner.OnDiagnosticMessage = testFramework.OnDiagnosticMessage;
-                    runner.OnErrorMessage = testFramework.OnErrorMessage;
 
                     int count = 0;
                     while (runner.Status != AssemblyRunnerStatus.Idle)

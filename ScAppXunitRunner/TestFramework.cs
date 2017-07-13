@@ -14,15 +14,8 @@ namespace ScAppXunitRunner
         // Starcounter logging
         internal readonly LogSource log = new LogSource("ScAppXunitRunner");
 
-        // We use consoleLock because messages can arrive in parallel, so we want to make sure we get
-        // consistent console output.
-        internal object consoleLock = new object();
-
-        // Use an event to know when we're done
+        // Use an event to know when test execution is done
         internal readonly ManualResetEvent finished = new ManualResetEvent(false);
-
-        // Start out assuming success; we'll set this to 1 if we get a failed test
-        internal int result = 0;
 
         private readonly List<TestCaseResult> testCaseResults;
         private string totalExecutionTime;
@@ -54,95 +47,56 @@ namespace ScAppXunitRunner
 
         internal void OnDiscoveryComplete(DiscoveryCompleteInfo info)
         {
-            lock (consoleLock)
-            {
-                
-            }
+            // Do nothing
         }
 
         internal void OnExecutionComplete(ExecutionCompleteInfo info)
         {
-            lock (consoleLock)
-            {
-                this.totalExecutionTime = Math.Round(info.ExecutionTime, 3).ToString();
-            }
+            this.totalExecutionTime = Math.Round(info.ExecutionTime, 3).ToString();
 
             finished.Set();
         }
 
         internal void OnTestStarting(TestStartingInfo info)
         {
-            lock (consoleLock)
-            {
-                
-            }
+            // Do nothing
         }
 
         internal void OnTestFinished(TestFinishedInfo info)
         {
-            lock (consoleLock)
-            {
-                
-            }
+            // Do nothing
         }
 
         internal void OnTestFailed(TestFailedInfo info)
         {
-            lock (consoleLock)
-            {
-                TestCaseResult tcr = new TestCaseResult(
-                    testCaseName: info.TestDisplayName,
-                    testState: TestResultState.FAILED,
-                    executionTime: info.ExecutionTime,
-                    exceptionMessage: info.ExceptionMessage,
-                    exceptionStackTrace: info.ExceptionStackTrace
-                    );
-                testCaseResults.Add(tcr);
-            }
-
-            result = 1;
+            TestCaseResult tcr = new TestCaseResult(
+                testCaseName: info.TestDisplayName,
+                testState: TestResultState.FAILED,
+                executionTime: info.ExecutionTime,
+                exceptionMessage: info.ExceptionMessage,
+                exceptionStackTrace: info.ExceptionStackTrace
+                );
+            testCaseResults.Add(tcr);
         }
 
         internal void OnTestPassed(TestPassedInfo info)
         {
-            lock (consoleLock)
-            {
-                TestCaseResult tcr = new TestCaseResult(
-                    testCaseName: info.TestDisplayName, 
-                    testState: TestResultState.PASSED, 
-                    executionTime: info.ExecutionTime
-                    );
-                testCaseResults.Add(tcr);
-            }
+            TestCaseResult tcr = new TestCaseResult(
+                testCaseName: info.TestDisplayName,
+                testState: TestResultState.PASSED,
+                executionTime: info.ExecutionTime
+                );
+            testCaseResults.Add(tcr);
         }
 
         internal void OnTestSkipped(TestSkippedInfo info)
         {
-            lock (consoleLock)
-            {
-                TestCaseResult tcr = new TestCaseResult(
-                    testCaseName: info.TestDisplayName,
-                    testState: TestResultState.SKIPPED,
-                    skipReason: info.SkipReason
-                    );
-                testCaseResults.Add(tcr);
-            }
-        }
-
-        internal void OnTestOutput(TestOutputInfo info)
-        {
-
-        }
-
-
-        internal void OnDiagnosticMessage(DiagnosticMessageInfo info)
-        {
-
-        }
-
-        internal void OnErrorMessage(ErrorMessageInfo info)
-        {
-
+            TestCaseResult tcr = new TestCaseResult(
+                testCaseName: info.TestDisplayName,
+                testState: TestResultState.SKIPPED,
+                skipReason: info.SkipReason
+                );
+            testCaseResults.Add(tcr);
         }
     }
 }
