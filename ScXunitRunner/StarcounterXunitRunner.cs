@@ -11,20 +11,42 @@ namespace ScXunitRunner
 {
     public class StarcounterXunitRunner
     {
+        private const string rootHandler = "/ScXunitRunner";
         private readonly string assemblyName;
         private readonly string assemblyLocation;
 
-        public StarcounterXunitRunner()
+        /// <summary>
+        /// Url for executing tests
+        /// </summary>
+        public string XunitRunnerUrl { get { return rootHandler + "/" + assemblyName; } }
+
+        /// <summary>
+        /// Creates a <see cref="Starcounter.Handle.GET"/> for executing Xunit tests which is located in the calling assembly.
+        /// The test execution will take place in the same AppDomain as the Starcounter database.
+        /// </summary>
+        /// <param name="urlEnding">
+        ///     Overrides the child part of the <see cref="XunitRunnerUrl"/>.
+        ///     If null, then the calling assembly name will be set.
+        /// </param>
+        public StarcounterXunitRunner(string urlEnding = null)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
-            assemblyName = assembly.GetName().Name;
+            if (urlEnding == null)
+            {
+                assemblyName = assembly.GetName().Name;
+            }
+            else
+            {
+                assemblyName = urlEnding;
+            }
+
             assemblyLocation = assembly.Location;
             AddHandler();
         }
 
         private void AddHandler()
         {
-            Handle.GET("/ScXunitRunner/" + assemblyName, () =>
+            Handle.GET(XunitRunnerUrl, () =>
             {
                 string typeName = null;
 

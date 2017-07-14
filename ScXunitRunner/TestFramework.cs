@@ -5,15 +5,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Runners;
-using Starcounter.Logging;
 
 namespace ScXunitRunner
 {
     internal class TestFramework
     {
-        // Starcounter logging
-        internal readonly LogSource log = new LogSource("ScAppXunitRunner");
-
         // Use an event to know when test execution is done
         internal readonly ManualResetEvent finished = new ManualResetEvent(false);
 
