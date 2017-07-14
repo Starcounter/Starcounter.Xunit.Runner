@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter;
 
-namespace DummyApp
+namespace ScApp
 {
     [Database]
-    public class DummyAppDb
+    public class ScAppDb
     {
         public string Name { get; set; }
         public int Integer { get; set; }

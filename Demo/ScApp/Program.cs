@@ -4,47 +4,47 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace DummyApp
+namespace ScApp
 {
-    internal class Program
+    public class Program
     {
-        public const string AppName = "/DummyApp";
-        public static Random random = new Random();
+        private const string AppName = "/ScApp";
+        private static Random random = new Random();
+        public const string GetAllDbEntriesCommand = "SELECT x FROM ScApp.ScAppDb x";
 
         public static void Main()
         {
-            var app = Application.Current;
-            app.Use(new HtmlFromJsonProvider());
-            app.Use(new PartialToStandaloneHtmlProvider());
-
-            Handle.GET(AppName + "/createnewentry", () =>
+            Handle.GET(AppName + "/CreateNewEntry", () =>
             {
                 CreateEntry();
 
                 return "One new entry created";
             });
 
-            Handle.GET(AppName + "/createnewentry/{?}", (int count) =>
+            Handle.GET(AppName + "/CreateNewEntry/{?}", (int count) =>
             {
                 if (count <= 0)
                 {
                     return $"argument: \"{count}\" needs to be strict greater than 0";
                 }
 
-                CreateEntries(count);
+                for (int i = 0; i < count; i++)
+                {
+                    CreateEntry();
+                }
 
                 return $"{count} entries created";
             });
 
-            Handle.GET(AppName + "/deleteall", () =>
+            Handle.GET(AppName + "/DeleteAll", () =>
             {
-                QueryResultRows<DummyAppDb> entries = Db.SQL<DummyAppDb>("SELECT x FROM DummyApp.DummyAppDb x");
-                List<DummyAppDb> entryList = entries.ToList();
+                QueryResultRows<ScAppDb> entries = Db.SQL<ScAppDb>(GetAllDbEntriesCommand);
+                List<ScAppDb> entryList = entries.ToList();
                 int count = entryList.Count();
 
                 Db.Transact(() =>
                 {
-                    foreach (DummyAppDb entry in entryList)
+                    foreach (ScAppDb entry in entryList)
                     {
                         entry.Delete();
                     }
@@ -53,34 +53,26 @@ namespace DummyApp
                 return $"{count} entries deleted";
             });
 
-            Handle.GET(AppName + "/listentries", () =>
+            Handle.GET(AppName + "/ListAll", () =>
             {
-                ListEntries json = new ListEntries { Data = null };
+                QueryResultRows<ScAppDb> entries = Db.SQL<ScAppDb>(GetAllDbEntriesCommand);
 
-                if (Session.Current == null)
+                string output = $"\"{GetAllDbEntriesCommand}\" entries: " + Environment.NewLine;
+                foreach (ScAppDb entry in entries)
                 {
-                    Session.Current = new Session(SessionOptions.PatchVersioning);
+                    output += $"Name: {entry.Name}, Integer: {entry.Integer}, DateCreated: {entry.DateCreated}" + Environment.NewLine;
                 }
-                json.Session = Session.Current;
 
-                return json;
+                return output;
             });
 
-        }
-
-        private static void CreateEntries(int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                CreateEntry();
-            }
         }
 
         private static void CreateEntry()
         {
             Db.Transact(() =>
             {
-                DummyAppDb entry = new DummyAppDb();
+                ScAppDb entry = new ScAppDb();
                 entry.Name = RandomString(10);
                 entry.Integer = random.Next(0, 1000);
                 entry.DateCreated = DateTime.Now;

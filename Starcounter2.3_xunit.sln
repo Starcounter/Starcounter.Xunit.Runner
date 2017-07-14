@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScXunitRunner", "ScXunitRunner\ScXunitRunner.csproj", "{9B325554-DD43-49D4-829E-B6BCB100D910}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyApp", "DummyApp\DummyApp.csproj", "{FBE97189-58C0-4A76-95A3-7702A448D324}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScApp", "Demo\ScApp\ScApp.csproj", "{FBE97189-58C0-4A76-95A3-7702A448D324}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScTestApp", "ScTestApp\ScTestApp.csproj", "{9E83D4B5-2A37-47B8-BE74-2C51425BA3C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScTestApp", "Demo\ScTestApp\ScTestApp.csproj", "{9E83D4B5-2A37-47B8-BE74-2C51425BA3C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{A444F2F1-3C18-498A-AE4A-C46E7ABD3151}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,5 +40,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FBE97189-58C0-4A76-95A3-7702A448D324} = {A444F2F1-3C18-498A-AE4A-C46E7ABD3151}
+		{9E83D4B5-2A37-47B8-BE74-2C51425BA3C2} = {A444F2F1-3C18-498A-AE4A-C46E7ABD3151}
 	EndGlobalSection
 EndGlobal
