@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using ScAppXunitRunner;
+using ScXunitRunner;
 
 // nuget: xunit and xunit.runner.console
 // copy local -> true (Starcounter, Starcounter.Internal, Starcounter.XSON)
@@ -14,7 +14,7 @@ namespace ScTestApp
     {
         static void Main()
         {
-            AddStarcounterTestRunner runner = new AddStarcounterTestRunner();
+            StarcounterXunitRunner runner = new StarcounterXunitRunner();
         }
     }
 }

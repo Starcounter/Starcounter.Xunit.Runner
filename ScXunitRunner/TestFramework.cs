@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Xunit.Runners;
 using Starcounter.Logging;
 
-namespace ScAppXunitRunner
+namespace ScXunitRunner
 {
     internal class TestFramework
     {

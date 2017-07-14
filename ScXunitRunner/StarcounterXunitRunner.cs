@@ -7,14 +7,14 @@ using Xunit.Runners;
 using Starcounter;
 using System.Reflection;
 
-namespace ScAppXunitRunner
+namespace ScXunitRunner
 {
-    public class AddStarcounterTestRunner
+    public class StarcounterXunitRunner
     {
         private readonly string assemblyName;
         private readonly string assemblyLocation;
 
-        public AddStarcounterTestRunner()
+        public StarcounterXunitRunner()
         {
             Assembly assembly = Assembly.GetCallingAssembly();
             assemblyName = assembly.GetName().Name;
