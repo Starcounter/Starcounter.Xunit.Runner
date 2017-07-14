@@ -33,7 +33,7 @@ namespace ScAppXunitRunner
 
         public override string ToString()
         {
-            string output = TestCaseName.PadRight(64, '.') + " " + TestState.ToString() + $". Execution time: {ExecutionTime}s";
+            string output = TestCaseName.PadRight(80, '.') + " " + TestState.ToString() + $". Execution time: {ExecutionTime}s";
 
             if (TestState == TestResultState.PASSED)
             {

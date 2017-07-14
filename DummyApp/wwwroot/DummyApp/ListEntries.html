@@ -1,0 +1,14 @@
+﻿<link rel="import" href="/sys/polymer/polymer.html">
+
+<template>
+    <template is="dom-bind">
+        <div>Entries: </div>
+        <template is="dom-repeat" items="{{model.Entries}}">
+            <div>
+                <span>{{item.Name}} </span>
+                <span>{{item.Integer}} </span>
+                <span>{{item.DateCreated}}</span>
+            </div>
+        </template>
+    </template>
+</template>
