@@ -30,6 +30,9 @@ namespace ScXunitRunner
         /// </param>
         public StarcounterXunitRunner(string urlEnding = null)
         {
+            // TODO: add triggerOnInstanceCreation as parameter when https://github.com/Starcounter/Starcounter.Xunit.Runner/issues/2 is implemented
+            bool triggerOnInstanceCreation = false; 
+
             Assembly assembly = Assembly.GetCallingAssembly();
             if (urlEnding == null)
             {
@@ -41,6 +44,12 @@ namespace ScXunitRunner
             }
 
             assemblyLocation = assembly.Location;
+
+            if (triggerOnInstanceCreation)
+            {
+                ExecuteTests();
+            }
+
             AddHandler();
         }
 
