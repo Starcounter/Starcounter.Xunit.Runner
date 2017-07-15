@@ -48,40 +48,45 @@ namespace ScXunitRunner
         {
             Handle.GET(XunitRunnerUrl, () =>
             {
-                string typeName = null;
+                return ExecuteTests();
+            });
+        }
 
-                using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyLocation))
+        private string ExecuteTests()
+        {
+            string typeName = null;
+
+            using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyLocation))
+            {
+                TestFramework testFramework = new TestFramework();
+                runner.OnDiscoveryComplete = testFramework.OnDiscoveryComplete;
+                runner.OnExecutionComplete = testFramework.OnExecutionComplete;
+                runner.OnTestStarting = testFramework.OnTestStarting;
+                runner.OnTestFailed = testFramework.OnTestFailed;
+                runner.OnTestSkipped = testFramework.OnTestSkipped;
+                runner.OnTestPassed = testFramework.OnTestPassed;
+                runner.OnTestFinished = testFramework.OnTestFinished;
+
+                int count = 0;
+                while (runner.Status != AssemblyRunnerStatus.Idle)
                 {
-                    TestFramework testFramework = new TestFramework();
-                    runner.OnDiscoveryComplete = testFramework.OnDiscoveryComplete;
-                    runner.OnExecutionComplete = testFramework.OnExecutionComplete;
-                    runner.OnTestStarting = testFramework.OnTestStarting;
-                    runner.OnTestFailed = testFramework.OnTestFailed;
-                    runner.OnTestSkipped = testFramework.OnTestSkipped;
-                    runner.OnTestPassed = testFramework.OnTestPassed;
-                    runner.OnTestFinished = testFramework.OnTestFinished;
-
-                    int count = 0;
-                    while (runner.Status != AssemblyRunnerStatus.Idle)
+                    if (count > 30)
                     {
-                        if (count > 30)
-                        {
-                            testFramework.finished.Dispose();
-                            return "Timeout";
-                        }
-
-                        Thread.Sleep(1000);
-                        count++;
+                        testFramework.finished.Dispose();
+                        return "Timeout";
                     }
 
-                    runner.Start(typeName);
-
-                    testFramework.finished.WaitOne();
-                    testFramework.finished.Dispose();
-
-                    return testFramework.ToString();
+                    Thread.Sleep(1000);
+                    count++;
                 }
-            });
+
+                runner.Start(typeName);
+
+                testFramework.finished.WaitOne();
+                testFramework.finished.Dispose();
+
+                return testFramework.ToString();
+            }
         }
     }
 }
