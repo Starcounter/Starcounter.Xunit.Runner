@@ -61,7 +61,7 @@ namespace ScXunitRunner
         /// </summary>
         /// <param name="typeName">
         ///     If null (default: null): All tests will be run.
-        ///     Otherwise only executing the tests within the typeName class i.e. typeName=<NameSpace>.<ClassName>.
+        ///     Otherwise only executing the tests within the typeName class i.e. typeName="NameSpace.ClassName".
         ///     <see cref="TestCaseFilter"/> will still be taken into account though.
         /// </param>
         public void Start(string typeName = null)
