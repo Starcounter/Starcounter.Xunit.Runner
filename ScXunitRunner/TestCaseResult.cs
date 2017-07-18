@@ -33,7 +33,7 @@ namespace ScXunitRunner
 
         public override string ToString()
         {
-            string output = TestCaseName.PadRight(80, '.') + " " + TestState.ToString() + $". Execution time: {ExecutionTime}s";
+            string output = TestCaseName.PadRight(96, '.') + " " + TestState.ToString() + $". Execution time: {ExecutionTime}s";
 
             if (TestState == TestResultState.PASSED)
             {

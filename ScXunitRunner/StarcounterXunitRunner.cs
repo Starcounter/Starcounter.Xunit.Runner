@@ -23,11 +23,17 @@ namespace ScXunitRunner
         public string XunitRunnerUrl { get; private set; } = null;
 
         /// <summary>
-        /// A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
-        /// This runner should be created inside a Starcounter Application.
+        ///     Set to be able to filter the test cases to decide which ones to run. 
+        ///     If this is not set, then all test cases will be run.
+        /// </summary>
+        public Func<Xunit.Abstractions.ITestCase, bool> TestCaseFiler { get; set; }
+
+        /// <summary>
+        ///     A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
+        ///     This runner should be created inside a Starcounter Application.
         /// </summary>
         /// <param name="triggerOnInstanceCreation">
-        ///     If true (default: true): tests will be executed on this instance creation.
+        ///     If true (default: false): tests will be executed on this instance creation.
         /// </param>
         /// <param name="createUrlHandler">
         ///     If true (default: false): a Url handler, <see cref="Starcounter.Handle.GET"/>, will be created for executing the tests withing the Calling Assembly.
@@ -37,18 +43,18 @@ namespace ScXunitRunner
         ///     If null (default: null), then the calling assembly name will be set, i.e. "/ScXunitRunner/<CallingAssemblyName>".
         ///     Will always be null if <see cref="createUrlHandler"/> is false.
         /// </param>
-        public StarcounterXunitRunner(bool triggerOnInstanceCreation = true, bool createUrlHandler = false, string childUrlPath = null)
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, bool createUrlHandler = false, string childUrlPath = null, Func<Xunit.Abstractions.ITestCase, bool> testCaseFiler = null)
         {
             this.triggerOnInstanceCreation = triggerOnInstanceCreation;
             this.createUrlHandler = createUrlHandler;
+            this.TestCaseFiler = testCaseFiler;
 
             Assembly assembly = Assembly.GetCallingAssembly();
             this.assemblyLocation = assembly.Location;
             
             if (this.triggerOnInstanceCreation)
             {
-                string output = ExecuteTests();
-                Console.WriteLine(output);
+                Start();
             }
 
             if (this.createUrlHandler)
@@ -57,6 +63,12 @@ namespace ScXunitRunner
                 this.XunitRunnerUrl = rootHandler + "/" + assemblyName;
                 AddHandler();
             }
+        }
+
+        public void Start()
+        {
+            string output = ExecuteTests();
+            Console.WriteLine(output);
         }
 
         private void AddHandler()
@@ -81,6 +93,7 @@ namespace ScXunitRunner
                 runner.OnTestSkipped = testFramework.OnTestSkipped;
                 runner.OnTestPassed = testFramework.OnTestPassed;
                 runner.OnTestFinished = testFramework.OnTestFinished;
+                runner.TestCaseFilter = this.TestCaseFiler;
 
                 int count = 0;
                 while (runner.Status != AssemblyRunnerStatus.Idle)
