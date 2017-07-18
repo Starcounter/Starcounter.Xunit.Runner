@@ -10,7 +10,7 @@ namespace ScTestApp
         static void Main()
         {
             StarcounterXunitRunner runner = new StarcounterXunitRunner();
-
+            
             // Executing tests using TestCaseFilter
             Func<Xunit.Abstractions.ITestCase, bool> testCaseFilter = (testCase) =>
             {
@@ -23,7 +23,7 @@ namespace ScTestApp
             };
             runner.TestCaseFilter = testCaseFilter;
             runner.Start();
-
+            
             // Executing tests using typeName
             runner.TestCaseFilter = null;
             string s = typeof(TestSetAlwaysFailing).GetTypeInfo().FullName;

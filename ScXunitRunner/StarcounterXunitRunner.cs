@@ -11,21 +11,20 @@ namespace ScXunitRunner
     public class StarcounterXunitRunner
     {
         private readonly string assemblyLocation;
-        private readonly bool triggerOnInstanceCreation;
 
         // lock for not execute multiple runs at the same time
         private object testExecutionLock = new object();
-
-        /// <summary>
-        ///     Url for executing tests
-        /// </summary>
-        public string XunitRunnerUrl { get; private set; } = null;
 
         /// <summary>
         ///     Set to be able to filter the test cases to decide which ones to run. 
         ///     If this is not set, then all test cases will be run.
         /// </summary>
         public Func<Xunit.Abstractions.ITestCase, bool> TestCaseFilter { get; set; }
+
+        /// <summary>
+        ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
+        /// </summary>
+        public bool RunTestsInParallel { get; set; }
 
         /// <summary>
         ///     A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
@@ -38,22 +37,25 @@ namespace ScXunitRunner
         ///     Set to be able to filter the test cases to decide which ones to run. 
         ///     If this is not set, then all test cases will be run.
         /// </param>
-        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<Xunit.Abstractions.ITestCase, bool> testCaseFilter = null)
+        /// <param name="runTestsInParallel">
+        ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
+        /// </param>
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<Xunit.Abstractions.ITestCase, bool> testCaseFilter = null, bool runTestsInParallel = true)
         {
-            this.triggerOnInstanceCreation = triggerOnInstanceCreation;
             this.TestCaseFilter = testCaseFilter;
+            this.RunTestsInParallel = runTestsInParallel;
 
             Assembly assembly = Assembly.GetCallingAssembly();
             this.assemblyLocation = assembly.Location;
             
-            if (this.triggerOnInstanceCreation)
+            if (triggerOnInstanceCreation)
             {
                 Start();
             }
         }
 
         /// <summary>
-        ///     Starts test execution.
+        ///     Starts test collection execution.
         /// </summary>
         /// <param name="typeName">
         ///     If null (default: null): All tests will be run.
@@ -96,7 +98,7 @@ namespace ScXunitRunner
                     count++;
                 }
 
-                runner.Start(typeName: typeName);
+                runner.Start(typeName: typeName, parallel: RunTestsInParallel);
 
                 testFramework.finished.WaitOne();
                 testFramework.finished.Dispose();
