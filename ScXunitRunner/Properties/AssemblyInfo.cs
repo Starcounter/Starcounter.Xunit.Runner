@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Starcounter.Internal;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -35,8 +34,3 @@ using Starcounter.Internal;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-
-// Assures the current assembly has a reference to the Starcounter
-// assembly. A reference to Starcounter is currently required for
-// Starcounter to detect that an assembly should be hosted.
-[assembly: StarcounterAssembly()]
