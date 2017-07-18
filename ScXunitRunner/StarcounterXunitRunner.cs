@@ -17,6 +17,9 @@ namespace ScXunitRunner
         private readonly bool triggerOnInstanceCreation;
         private readonly bool createUrlHandler;
 
+        // lock for not execute multiple runs at the same time
+        private object testExecutionLock = new object();
+
         /// <summary>
         ///     Url for executing tests
         /// </summary>
@@ -26,7 +29,7 @@ namespace ScXunitRunner
         ///     Set to be able to filter the test cases to decide which ones to run. 
         ///     If this is not set, then all test cases will be run.
         /// </summary>
-        public Func<Xunit.Abstractions.ITestCase, bool> TestCaseFiler { get; set; }
+        public Func<Xunit.Abstractions.ITestCase, bool> TestCaseFilter { get; set; }
 
         /// <summary>
         ///     A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
@@ -43,11 +46,11 @@ namespace ScXunitRunner
         ///     If null (default: null), then the calling assembly name will be set, i.e. "/ScXunitRunner/<CallingAssemblyName>".
         ///     Will always be null if <see cref="createUrlHandler"/> is false.
         /// </param>
-        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, bool createUrlHandler = false, string childUrlPath = null, Func<Xunit.Abstractions.ITestCase, bool> testCaseFiler = null)
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, bool createUrlHandler = false, string childUrlPath = null, Func<Xunit.Abstractions.ITestCase, bool> testCaseFilter = null)
         {
             this.triggerOnInstanceCreation = triggerOnInstanceCreation;
             this.createUrlHandler = createUrlHandler;
-            this.TestCaseFiler = testCaseFiler;
+            this.TestCaseFilter = testCaseFilter;
 
             Assembly assembly = Assembly.GetCallingAssembly();
             this.assemblyLocation = assembly.Location;
@@ -65,10 +68,21 @@ namespace ScXunitRunner
             }
         }
 
-        public void Start()
+        /// <summary>
+        ///     Starts test execution.
+        /// </summary>
+        /// <param name="typeName">
+        ///     If null (default: null): All tests will be run.
+        ///     Otherwise only executing the tests within the typeName class i.e. typeName=<NameSpace>.<ClassName>.
+        ///     <see cref="TestCaseFilter"/> will still be taken into account though.
+        /// </param>
+        public void Start(string typeName = null)
         {
-            string output = ExecuteTests();
-            Console.WriteLine(output);
+            lock (testExecutionLock)
+            {
+                string output = ExecuteTests(typeName: typeName);
+                Console.WriteLine(output);
+            }
         }
 
         private void AddHandler()
@@ -79,10 +93,8 @@ namespace ScXunitRunner
             });
         }
 
-        private string ExecuteTests()
+        private string ExecuteTests(string typeName = null)
         {
-            string typeName = null;
-
             using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyLocation))
             {
                 TestFramework testFramework = new TestFramework();
@@ -93,7 +105,7 @@ namespace ScXunitRunner
                 runner.OnTestSkipped = testFramework.OnTestSkipped;
                 runner.OnTestPassed = testFramework.OnTestPassed;
                 runner.OnTestFinished = testFramework.OnTestFinished;
-                runner.TestCaseFilter = this.TestCaseFiler;
+                runner.TestCaseFilter = this.TestCaseFilter;
 
                 int count = 0;
                 while (runner.Status != AssemblyRunnerStatus.Idle)
@@ -108,7 +120,7 @@ namespace ScXunitRunner
                     count++;
                 }
 
-                runner.Start(typeName);
+                runner.Start(typeName: typeName);
 
                 testFramework.finished.WaitOne();
                 testFramework.finished.Dispose();

@@ -36,7 +36,8 @@ namespace ScXunitRunner
                 output += $"[{i + 1}/{count}] " + testCaseResults[i].ToString() + Environment.NewLine;
             }
 
-            output += Environment.NewLine + $"Total execution time: {totalExecutionTime}s, Passed: {passedCount}, Failed: {failedCount}, Skipped: {skippedCount}";
+            output += Environment.NewLine + $"Total execution time: {totalExecutionTime}s, Total: {count}, Passed: {passedCount}, Failed: {failedCount}, Skipped: {skippedCount}";
+            output += Environment.NewLine + Environment.NewLine;
 
             return output;
         }

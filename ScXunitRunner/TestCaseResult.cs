@@ -41,15 +41,15 @@ namespace ScXunitRunner
             }
             else if (TestState == TestResultState.FAILED)
             {
-                output += Environment.NewLine + ExceptionMessage + ExceptionStackTrace;
+                output += Environment.NewLine + ExceptionMessage + ExceptionStackTrace + Environment.NewLine;
             }
             else if (TestState == TestResultState.SKIPPED)
             {
-                output += Environment.NewLine + SkipReason;
+                output += Environment.NewLine + SkipReason + Environment.NewLine;
             }
             else
             {
-
+                // Should never be entered
             }
 
             return output;
