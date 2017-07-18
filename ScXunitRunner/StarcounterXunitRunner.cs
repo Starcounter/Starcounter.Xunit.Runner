@@ -14,48 +14,54 @@ namespace ScXunitRunner
         private const string rootHandler = "/ScXunitRunner";
         private readonly string assemblyName;
         private readonly string assemblyLocation;
+        private readonly bool triggerOnInstanceCreation;
+        private readonly bool createUrlHandler;
 
         /// <summary>
-        /// Url for executing tests
+        ///     Url for executing tests
         /// </summary>
-        public string XunitRunnerUrl { get { return rootHandler + "/" + assemblyName; } }
+        public string XunitRunnerUrl { get; private set; } = null;
 
         /// <summary>
-        /// Creates a <see cref="Starcounter.Handle.GET"/> for executing Xunit tests which is located in the calling assembly.
-        /// The test execution will take place in the same AppDomain as the Starcounter database.
+        /// A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
+        /// This runner should be created inside a Starcounter Application.
         /// </summary>
-        /// <param name="urlEnding">
-        ///     Overrides the child part of the <see cref="XunitRunnerUrl"/>.
-        ///     If null, then the calling assembly name will be set.
+        /// <param name="triggerOnInstanceCreation">
+        ///     If true (default: true): tests will be executed on this instance creation.
         /// </param>
-        public StarcounterXunitRunner(string urlEnding = null)
+        /// <param name="createUrlHandler">
+        ///     If true (default: false): a Url handler, <see cref="Starcounter.Handle.GET"/>, will be created for executing the tests withing the Calling Assembly.
+        /// </param>
+        /// <param name="childUrlPath">
+        ///     Overrides the child part of the <see cref="XunitRunnerUrl"/> string.
+        ///     If null (default: null), then the calling assembly name will be set, i.e. "/ScXunitRunner/<CallingAssemblyName>".
+        ///     Will always be null if <see cref="createUrlHandler"/> is false.
+        /// </param>
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = true, bool createUrlHandler = false, string childUrlPath = null)
         {
-            // TODO: add triggerOnInstanceCreation as parameter when https://github.com/Starcounter/Starcounter.Xunit.Runner/issues/2 is implemented
-            bool triggerOnInstanceCreation = false; 
+            this.triggerOnInstanceCreation = triggerOnInstanceCreation;
+            this.createUrlHandler = createUrlHandler;
 
             Assembly assembly = Assembly.GetCallingAssembly();
-            if (urlEnding == null)
+            this.assemblyLocation = assembly.Location;
+            
+            if (this.triggerOnInstanceCreation)
             {
-                assemblyName = assembly.GetName().Name;
-            }
-            else
-            {
-                assemblyName = urlEnding;
-            }
-
-            assemblyLocation = assembly.Location;
-
-            if (triggerOnInstanceCreation)
-            {
-                ExecuteTests();
+                string output = ExecuteTests();
+                Console.WriteLine(output);
             }
 
-            AddHandler();
+            if (this.createUrlHandler)
+            {
+                this.assemblyName = childUrlPath ?? assembly.GetName().Name;
+                this.XunitRunnerUrl = rootHandler + "/" + assemblyName;
+                AddHandler();
+            }
         }
 
         private void AddHandler()
         {
-            Handle.GET(XunitRunnerUrl, () =>
+            Handle.GET(this.XunitRunnerUrl, () =>
             {
                 return ExecuteTests();
             });
