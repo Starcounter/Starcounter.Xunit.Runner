@@ -41,7 +41,7 @@ namespace ScXunitRunner
             }
             else if (TestState == TestResultState.FAILED)
             {
-                output += Environment.NewLine + ExceptionMessage + ExceptionStackTrace + Environment.NewLine;
+                output += Environment.NewLine + ExceptionMessage + Environment.NewLine + "Stack Trace: " + Environment.NewLine + ExceptionStackTrace + Environment.NewLine;
             }
             else if (TestState == TestResultState.SKIPPED)
             {

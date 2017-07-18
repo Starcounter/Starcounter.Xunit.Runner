@@ -15,20 +15,22 @@ namespace ScXunitRunner
 
         private readonly List<TestCaseResult> testCaseResults;
         private string totalExecutionTime;
+        private readonly string assebmlyName;
 
         private int passedCount { get { return testCaseResults.Count(x => x.TestState == TestResultState.PASSED); } }
         private int failedCount { get { return testCaseResults.Count(x => x.TestState == TestResultState.FAILED); } }
         private int skippedCount { get { return testCaseResults.Count(x => x.TestState == TestResultState.SKIPPED); } }
         private int totalCount { get { return testCaseResults.Count(); } }
 
-        internal TestFramework()
+        internal TestFramework(string assebmlyName)
         {
+            this.assebmlyName = assebmlyName;
             testCaseResults = new List<TestCaseResult>();
         }
 
         public override string ToString()
         {
-            string output = "";
+            string output = assebmlyName + " executed" + Environment.NewLine; 
             int count = totalCount;
 
             for (int i = 0; i < count; i++)
@@ -36,7 +38,10 @@ namespace ScXunitRunner
                 output += $"[{i + 1}/{count}] " + testCaseResults[i].ToString() + Environment.NewLine;
             }
 
-            output += Environment.NewLine + $"Total execution time: {totalExecutionTime}s, Total: {count}, Passed: {passedCount}, Failed: {failedCount}, Skipped: {skippedCount}";
+            output += Environment.NewLine;
+            output += "=== TEST EXECUTION SUMMARY ===" + Environment.NewLine;
+            output += "  " + (failedCount == 0 ? "PASSED" : "FAILED") + Environment.NewLine;
+            output += $"  {assebmlyName}  Total: {count}, Passed: {passedCount}, Failed: {failedCount}, Skipped: {skippedCount}, Time: {totalExecutionTime}s";
             output += Environment.NewLine + Environment.NewLine;
 
             return output;

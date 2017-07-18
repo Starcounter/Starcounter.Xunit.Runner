@@ -11,6 +11,7 @@ namespace ScXunitRunner
     public class StarcounterXunitRunner
     {
         private readonly string assemblyLocation;
+        private readonly string assebmlyName;
 
         // lock for not execute multiple runs at the same time
         private object testExecutionLock = new object();
@@ -47,7 +48,8 @@ namespace ScXunitRunner
 
             Assembly assembly = Assembly.GetCallingAssembly();
             this.assemblyLocation = assembly.Location;
-            
+            this.assebmlyName = assembly.GetName().Name;
+
             if (triggerOnInstanceCreation)
             {
                 Start();
@@ -75,7 +77,7 @@ namespace ScXunitRunner
         {
             using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyLocation))
             {
-                TestFramework testFramework = new TestFramework();
+                TestFramework testFramework = new TestFramework(assebmlyName);
                 runner.OnDiscoveryComplete = testFramework.OnDiscoveryComplete;
                 runner.OnExecutionComplete = testFramework.OnExecutionComplete;
                 runner.OnTestStarting = testFramework.OnTestStarting;
