@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ScXunitRunner
+namespace Starcounter.Xunit.Runner
 {
     internal enum TestResultState
     {

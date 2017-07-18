@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using ScXunitRunner;
+using Starcounter.Xunit.Runner;
 
 namespace ScTestApp
 {

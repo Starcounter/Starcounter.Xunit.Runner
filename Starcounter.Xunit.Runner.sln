@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScXunitRunner", "ScXunitRunner\ScXunitRunner.csproj", "{9B325554-DD43-49D4-829E-B6BCB100D910}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarcounterXunitRunner", "StarcounterXunitRunner\StarcounterXunitRunner.csproj", "{9B325554-DD43-49D4-829E-B6BCB100D910}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScApp", "Demo\ScApp\ScApp.csproj", "{FBE97189-58C0-4A76-95A3-7702A448D324}"
 EndProject

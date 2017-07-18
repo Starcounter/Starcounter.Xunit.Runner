@@ -5,8 +5,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Xunit.Runners;
+using XunitAbstractions = Xunit.Abstractions;
 
-namespace ScXunitRunner
+namespace Starcounter.Xunit.Runner
 {
     public class StarcounterXunitRunner
     {
@@ -20,7 +21,7 @@ namespace ScXunitRunner
         ///     Set to be able to filter the test cases to decide which ones to run. 
         ///     If this is not set, then all test cases will be run.
         /// </summary>
-        public Func<Xunit.Abstractions.ITestCase, bool> TestCaseFilter { get; set; }
+        public Func<XunitAbstractions.ITestCase, bool> TestCaseFilter { get; set; }
 
         /// <summary>
         ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
@@ -41,7 +42,7 @@ namespace ScXunitRunner
         /// <param name="runTestsInParallel">
         ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
         /// </param>
-        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<Xunit.Abstractions.ITestCase, bool> testCaseFilter = null, bool runTestsInParallel = true)
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<XunitAbstractions.ITestCase, bool> testCaseFilter = null, bool runTestsInParallel = true)
         {
             this.TestCaseFilter = testCaseFilter;
             this.RunTestsInParallel = runTestsInParallel;

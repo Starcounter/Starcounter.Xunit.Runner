@@ -93,9 +93,9 @@
       <Project>{fbe97189-58c0-4a76-95a3-7702a448d324}</Project>
       <Name>ScApp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ScXunitRunner\ScXunitRunner.csproj">
+    <ProjectReference Include="..\..\StarcounterXunitRunner\StarcounterXunitRunner.csproj">
       <Project>{9b325554-dd43-49d4-829e-b6bcb100d910}</Project>
-      <Name>ScXunitRunner</Name>
+      <Name>StarcounterXunitRunner</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
