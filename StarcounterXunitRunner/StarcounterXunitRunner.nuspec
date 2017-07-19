@@ -2,15 +2,18 @@
 <package >
   <metadata>
     <id>Starcounter.Xunit.Runner</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>Starcounter.Xunit.Runner</title>
     <authors>Starcounter</authors>
     <owners>Starcounter</owners>
     <projectUrl>https://github.com/Starcounter/Starcounter.Xunit.Runner</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Xunit console runner for executing tests in the same domain as the Starcounter database</description>
-    <releaseNotes>First release</releaseNotes>
+    <releaseNotes>Adding weaver.ignore as content</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>Starcounter Xunit</tags>
   </metadata>
+  <files>
+    <file src="weaver.ignore" target="content" />
+  </files>
 </package>
