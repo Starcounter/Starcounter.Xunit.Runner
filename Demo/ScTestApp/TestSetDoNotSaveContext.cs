@@ -7,7 +7,6 @@ using Xunit;
 
 namespace ScTestApp
 {
-    //[TestSet(saveContext: false, priority: -1)]
     public class TestSetDoNotSaveContext
     {
         private bool test1HasBeenRun = false;
