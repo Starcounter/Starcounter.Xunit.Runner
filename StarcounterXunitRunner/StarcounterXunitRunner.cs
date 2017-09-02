@@ -100,14 +100,15 @@ namespace Starcounter.Xunit.Runner
         ///     Otherwise only executing the tests within the typeName class i.e. typeName="NameSpace.ClassName".
         ///     <see cref="TestCaseFilter"/> will still be taken into account though.
         /// </param>
-        /// <param name="xmlTestReportName">
-        ///     If null (default: null): No xml test report will be generated otherwise specify full name in order to generate it.
+        /// <param name="testReportName">
+        ///     If null (default: null): No test report will be generated. 
+        ///     Set the desired name (FullPath or only FileName) to generate test report, file type is not needed. 
         /// </param>
-        public void Start(string typeName = null, string xmlTestReportName = null)
+        public void Start(string typeName = null, string testReportName = null)
         {
             lock (testExecutionLock)
             {
-                ExecuteTests(typeName: typeName, xmlTestReportName: xmlTestReportName);
+                ExecuteTests(typeName: typeName, testReportName: testReportName);
             }
         }
 
@@ -115,8 +116,8 @@ namespace Starcounter.Xunit.Runner
         ///     <see cref="StarcounterXunitRunner.Start(string, string)"/> for description.
         /// </summary>
         /// <param name="typeName"></param>
-        /// <param name="xmlTestReportName"></param>
-        private void ExecuteTests(string typeName = null, string xmlTestReportName = null)
+        /// <param name="testReportName"></param>
+        private void ExecuteTests(string typeName = null, string testReportName = null)
         {
             ExecutionSummary executionSummary = null;
 
@@ -215,10 +216,18 @@ namespace Starcounter.Xunit.Runner
 
                 reporterMessageHandler.OnMessage(new TestExecutionSummary(clockTime.Elapsed, new List<KeyValuePair<string, ExecutionSummary>> { kvpExecutionSummary }));
 
-                if (xmlTestReportName != null)
+                if (testReportName != null)
                 {
-                    CreateXmlTestReport(assembliesElement, xmlTestReportName);
-                    CreateHtmlTestReport(assembliesElement, xmlTestReportName);
+                    // Create folder if it does not exist
+                    FileInfo fi = new FileInfo(testReportName);
+                    DirectoryInfo directory = fi.Directory;
+                    if (!directory.Exists)
+                    {
+                        Directory.CreateDirectory(directory.FullName);
+                    }
+
+                    CreateXmlTestReport(assembliesElement, fi);
+                    CreateHtmlTestReport(assembliesElement, fi);
                 }
                 Console.WriteLine();
                 Console.WriteLine();
@@ -229,40 +238,49 @@ namespace Starcounter.Xunit.Runner
         /// Creates directory and generates Xml TestReport
         /// </summary>
         /// <param name="assembliesElement"></param>
-        /// <param name="xmlTestResultName"></param>
-        private void CreateXmlTestReport(XElement assembliesElement, string xmlTestResultName)
+        /// <param name="testReportFileInfo"></param>
+        private void CreateXmlTestReport(XElement assembliesElement, FileInfo testReportFileInfo)
         {
-            FileInfo fi = new FileInfo(xmlTestResultName);
-            DirectoryInfo directory = fi.Directory;
+            string fullPath = testReportFileInfo.FullName;
 
-            if (!directory.Exists)
+            if (!fullPath.EndsWith(".xml"))
             {
-                Directory.CreateDirectory(directory.FullName);
+                fullPath += ".xml";
             }
 
-            using (var stream = File.OpenWrite(fi.FullName))
+            using (var stream = File.OpenWrite(fullPath))
             {
                 assembliesElement.Save(stream);
                 Console.WriteLine($"   Test report generated: {stream.Name}");
             }
         }
 
-        private void CreateHtmlTestReport(XElement assembliesElement, string xmlTestResultName)
+        /// <summary>
+        /// Creates directory and generates html TestReport
+        /// </summary>
+        /// <param name="assembliesElement"></param>
+        /// <param name="testReportFileInfo"></param>
+        private void CreateHtmlTestReport(XElement assembliesElement, FileInfo testReportFileInfo)
         {
+            string fullPath = testReportFileInfo.FullName;
+
+            if (!fullPath.EndsWith(".html"))
+            {
+                fullPath += ".html";
+            }
+
             var xmlTransform = new System.Xml.Xsl.XslCompiledTransform();
 
             var currentAssembly = Assembly.GetAssembly(typeof(StarcounterXunitRunner));
 
-            string outputFile = xmlTestResultName + ".html";
-
-            using (var writer = XmlWriter.Create(outputFile, new XmlWriterSettings { Indent = true }))
+            using (var writer = XmlWriter.Create(fullPath, new XmlWriterSettings { Indent = true }))
             using (var xsltStream = currentAssembly.GetManifestResourceStream($"Starcounter.Xunit.Runner.HTML.xslt"))
             using (var xsltReader = XmlReader.Create(xsltStream))
             using (var xmlReader = assembliesElement.CreateReader())
             {
                 xmlTransform.Load(xsltReader);
                 xmlTransform.Transform(xmlReader, writer);
-                Console.WriteLine($"   Test report generated: {outputFile}");
+                Console.WriteLine($"   Test report generated: {fullPath}");
             }
         }
     }
