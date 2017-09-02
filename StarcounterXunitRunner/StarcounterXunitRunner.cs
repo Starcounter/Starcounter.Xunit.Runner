@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Xml;
 using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -143,7 +144,7 @@ namespace Starcounter.Xunit.Runner
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assembly.AssemblyFilename);
             var appDomainSupport = assembly.Configuration.AppDomainOrDefault;
             var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
-            
+
             var clockTime = Stopwatch.StartNew();
             bool cancel = false;
             using (var controller = new XunitFrontController(
@@ -187,7 +188,7 @@ namespace Starcounter.Xunit.Runner
                 else
                 {
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
-                    
+
                     IExecutionSink resultsSink = new DelegatingExecutionSummarySink(reporterMessageHandler, () => cancel, (path, summary) => { executionSummary = summary; });
                     if (assemblyElement != null)
                     {
@@ -216,7 +217,8 @@ namespace Starcounter.Xunit.Runner
 
                 if (xmlTestReportName != null)
                 {
-                    CreateXmlTestResultFile(assembliesElement, xmlTestReportName);
+                    CreateXmlTestReport(assembliesElement, xmlTestReportName);
+                    CreateHtmlTestReport(assembliesElement, xmlTestReportName);
                 }
                 Console.WriteLine();
                 Console.WriteLine();
@@ -228,7 +230,7 @@ namespace Starcounter.Xunit.Runner
         /// </summary>
         /// <param name="assembliesElement"></param>
         /// <param name="xmlTestResultName"></param>
-        private void CreateXmlTestResultFile(XElement assembliesElement, string xmlTestResultName)
+        private void CreateXmlTestReport(XElement assembliesElement, string xmlTestResultName)
         {
             FileInfo fi = new FileInfo(xmlTestResultName);
             DirectoryInfo directory = fi.Directory;
@@ -242,6 +244,25 @@ namespace Starcounter.Xunit.Runner
             {
                 assembliesElement.Save(stream);
                 Console.WriteLine($"   Test report generated: {stream.Name}");
+            }
+        }
+
+        private void CreateHtmlTestReport(XElement assembliesElement, string xmlTestResultName)
+        {
+            var xmlTransform = new System.Xml.Xsl.XslCompiledTransform();
+
+            var currentAssembly = Assembly.GetAssembly(typeof(StarcounterXunitRunner));
+
+            string outputFile = xmlTestResultName + ".html";
+
+            using (var writer = XmlWriter.Create(outputFile, new XmlWriterSettings { Indent = true }))
+            using (var xsltStream = currentAssembly.GetManifestResourceStream($"Starcounter.Xunit.Runner.HTML.xslt"))
+            using (var xsltReader = XmlReader.Create(xsltStream))
+            using (var xmlReader = assembliesElement.CreateReader())
+            {
+                xmlTransform.Load(xsltReader);
+                xmlTransform.Transform(xmlReader, writer);
+                Console.WriteLine($"   Test report generated: {outputFile}");
             }
         }
     }
