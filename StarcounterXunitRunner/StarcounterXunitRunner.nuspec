@@ -2,26 +2,25 @@
 <package >
   <metadata>
     <id>Starcounter.Xunit.Runner</id>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <title>Starcounter.Xunit.Runner</title>
     <authors>ubbeK</authors>
     <owners>Starcounter</owners>
     <projectUrl>https://github.com/Starcounter/Starcounter.Xunit.Runner</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Xunit console runner for executing tests in the same domain as the Starcounter database</description>
-    <releaseNotes>weaver.ignore updated with StarcounterXunitRunner.dll</releaseNotes>
+    <releaseNotes>correct xunit.runner.utility dependency used</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>Starcounter Xunit</tags>
     <dependencies>
-      <dependency id="more.xunit.runner.reporters" version="2.2.2" />
-      <dependency id="more.xunit.runner.utility" version="2.2.2" />
       <dependency id="xunit" version="2.2.0" />
       <dependency id="xunit.abstractions" version="2.0.1" />
       <dependency id="xunit.assert" version="2.2.0" />
       <dependency id="xunit.core" version="2.2.0" />
       <dependency id="xunit.extensibility.core" version="2.2.0" />
       <dependency id="xunit.extensibility.execution" version="2.2.0" />
-      <dependency id="xunit.runner.utility" version="2.2.0" />
+      <dependency id="more.xunit.runner.reporters" version="2.2.2" />
+      <dependency id="more.xunit.runner.utility" version="2.2.2" />
     </dependencies>
   </metadata>
   <files>
