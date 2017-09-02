@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
+using Xunit;
+using Xunit.Abstractions;
 using Xunit.Runners;
 using XunitAbstractions = Xunit.Abstractions;
+using XunitReporters = Xunit.Runner.Reporters;
 
 namespace Starcounter.Xunit.Runner
 {
@@ -21,12 +29,29 @@ namespace Starcounter.Xunit.Runner
         ///     Set to be able to filter the test cases to decide which ones to run. 
         ///     If this is not set, then all test cases will be run.
         /// </summary>
-        public Func<XunitAbstractions.ITestCase, bool> TestCaseFilter { get; set; }
+        public Func<XunitAbstractions.ITestCase, bool> TestCaseFilter
+        {
+            get
+            {
+                return testCaseFilter ?? ((testCasee) => true);
+            }
+            set
+            {
+                testCaseFilter = value;
+            }
+        }
+        private Func<XunitAbstractions.ITestCase, bool> testCaseFilter;
 
         /// <summary>
         ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
         /// </summary>
         public bool RunTestsInParallel { get; set; }
+
+        /// <summary>
+        ///     Set to true (default: false) to print executed test cases to console, including any test case stack trace.
+        ///     Note that by doing this the tests will be run in sequence i.e. RunTestsInParallel will be overridden to false!
+        /// </summary>
+        public bool DeveloperMode { get; set; }
 
         /// <summary>
         ///     A Xunit runner for executing tests from the calling assembly in the same AppDomain as the hosted Starcounter database.
@@ -40,12 +65,21 @@ namespace Starcounter.Xunit.Runner
         ///     If this is not set, then all test cases will be run.
         /// </param>
         /// <param name="runTestsInParallel">
-        ///     Set to true (default: true) to run test collections in parallel; set to false to run them sequentially.
+        ///     Set to true (default: false) to run test collections in parallel; set to false to run them sequentially.
         /// </param>
-        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<XunitAbstractions.ITestCase, bool> testCaseFilter = null, bool runTestsInParallel = true)
+        /// <param name="developerMode">
+        ///     Set to true (default: false) to print executed test cases to console, including any test case stack trace.
+        ///     Note that by doing this the tests will be run in sequence i.e. RunTestsInParallel will be overridden to false!
+        /// </param>
+        public StarcounterXunitRunner(bool triggerOnInstanceCreation = false, Func<XunitAbstractions.ITestCase, bool> testCaseFilter = null, bool runTestsInParallel = false, bool developerMode = false)
         {
+            if (testCaseFilter == null)
+            {
+                testCaseFilter = (testCase) => true;
+            }
             this.TestCaseFilter = testCaseFilter;
             this.RunTestsInParallel = runTestsInParallel;
+            this.DeveloperMode = developerMode;
 
             Assembly assembly = Assembly.GetCallingAssembly();
             this.assemblyLocation = assembly.Location;
@@ -65,48 +99,149 @@ namespace Starcounter.Xunit.Runner
         ///     Otherwise only executing the tests within the typeName class i.e. typeName="NameSpace.ClassName".
         ///     <see cref="TestCaseFilter"/> will still be taken into account though.
         /// </param>
-        public void Start(string typeName = null)
+        /// <param name="xmlTestReportName">
+        ///     If null (default: null): No xml test report will be generated otherwise specify full name in order to generate it.
+        /// </param>
+        public void Start(string typeName = null, string xmlTestReportName = null)
         {
             lock (testExecutionLock)
             {
-                string output = ExecuteTests(typeName: typeName);
-                Console.WriteLine(output);
+                ExecuteTests(typeName: typeName, xmlTestReportName: xmlTestReportName);
             }
         }
 
-        private string ExecuteTests(string typeName = null)
+        /// <summary>
+        ///     <see cref="StarcounterXunitRunner.Start(string, string)"/> for description.
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <param name="xmlTestReportName"></param>
+        private void ExecuteTests(string typeName = null, string xmlTestReportName = null)
         {
-            using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyLocation))
-            {
-                TestFramework testFramework = new TestFramework(assebmlyName);
-                runner.OnDiscoveryComplete = testFramework.OnDiscoveryComplete;
-                runner.OnExecutionComplete = testFramework.OnExecutionComplete;
-                runner.OnTestStarting = testFramework.OnTestStarting;
-                runner.OnTestFailed = testFramework.OnTestFailed;
-                runner.OnTestSkipped = testFramework.OnTestSkipped;
-                runner.OnTestPassed = testFramework.OnTestPassed;
-                runner.OnTestFinished = testFramework.OnTestFinished;
-                runner.TestCaseFilter = this.TestCaseFilter;
+            ExecutionSummary executionSummary = null;
 
-                int count = 0;
-                while (runner.Status != AssemblyRunnerStatus.Idle)
+            XunitProjectAssembly assembly = new XunitProjectAssembly
+            {
+                AssemblyFilename = assemblyLocation,
+                ConfigFilename = null
+            };
+
+            XElement assembliesElement = new XElement("assemblies");
+            XElement assemblyElement = new XElement("assembly");
+
+            // Logger
+            var verboserReporter = new XunitReporters.VerboseReporter();
+            IRunnerLogger logger = new ConsoleRunnerLogger(useColors: true);
+            IMessageSinkWithTypes reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap(verboserReporter.CreateMessageHandler(logger));
+
+            // Option setup
+            ITestFrameworkDiscoveryOptions discoveryOptions = TestFrameworkOptions.ForDiscovery(null);
+            ITestFrameworkExecutionOptions executionOptions = TestFrameworkOptions.ForExecution(null);
+            executionOptions.SetSynchronousMessageReporting(true);
+            executionOptions.SetDisableParallelization(DeveloperMode || !RunTestsInParallel);
+            executionOptions.SetDiagnosticMessages(true);
+
+            var assemblyDisplayName = Path.GetFileNameWithoutExtension(assembly.AssemblyFilename);
+            var appDomainSupport = assembly.Configuration.AppDomainOrDefault;
+            var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
+            
+            var clockTime = Stopwatch.StartNew();
+            bool cancel = false;
+            using (var controller = new XunitFrontController(
+                appDomainSupport: AppDomainSupport.Denied,
+                assemblyFileName: assembly.AssemblyFilename,
+                configFileName: null,
+                shadowCopy: shadowCopy,
+                shadowCopyFolder: null,
+                sourceInformationProvider: null,
+                diagnosticMessageSink: null))
+            using (var discoverySink = new TestDiscoverySink(() => cancel))
+            {
+                // Discover & filter the tests
+                reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(
+                    assembly: assembly,
+                    appDomain: controller.CanUseAppDomains && appDomainSupport != AppDomainSupport.Denied,
+                    shadowCopy: shadowCopy,
+                    discoveryOptions: discoveryOptions));
+
+                if (typeName != null)
                 {
-                    if (count > 20)
+                    controller.Find(typeName, false, discoverySink, discoveryOptions);
+                }
+                else
+                {
+                    controller.Find(false, discoverySink, discoveryOptions);
+                }
+                discoverySink.Finished.WaitOne();
+
+                var testCasesDiscovered = discoverySink.TestCases.Count;
+                var filteredTestCases = discoverySink.TestCases.Where(TestCaseFilter).ToList();
+                var testCasesToRun = filteredTestCases.Count;
+
+                reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions, testCasesDiscovered, testCasesToRun));
+
+                // Run the filtered tests
+                if (testCasesToRun == 0)
+                {
+                    executionSummary = new ExecutionSummary();
+                }
+                else
+                {
+                    reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
+                    
+                    IExecutionSink resultsSink = new DelegatingExecutionSummarySink(reporterMessageHandler, () => cancel, (path, summary) => { executionSummary = summary; });
+                    if (assemblyElement != null)
                     {
-                        testFramework.finished.Dispose();
-                        return "Timeout";
+                        resultsSink = new DelegatingXmlCreationSink(resultsSink, assemblyElement);
                     }
 
-                    Thread.Sleep(1000);
-                    count++;
+                    controller.RunTests(filteredTestCases, resultsSink, executionOptions);
+                    resultsSink.Finished.WaitOne();
+
+                    reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, resultsSink.ExecutionSummary));
+                    assembliesElement.Add(assemblyElement);
                 }
+            }
 
-                runner.Start(typeName: typeName, parallel: RunTestsInParallel);
+            clockTime.Stop();
 
-                testFramework.finished.WaitOne();
-                testFramework.finished.Dispose();
+            assembliesElement.Add(new XAttribute("timestamp", DateTime.Now.ToString(CultureInfo.InvariantCulture)));
 
-                return testFramework.ToString();
+            if (executionSummary != null)
+            {
+                Console.WriteLine();
+
+                KeyValuePair<string, ExecutionSummary> kvpExecutionSummary = new KeyValuePair<string, ExecutionSummary>(this.assebmlyName, executionSummary);
+
+                reporterMessageHandler.OnMessage(new TestExecutionSummary(clockTime.Elapsed, new List<KeyValuePair<string, ExecutionSummary>> { kvpExecutionSummary }));
+
+                if (xmlTestReportName != null)
+                {
+                    CreateXmlTestResultFile(assembliesElement, xmlTestReportName);
+                }
+                Console.WriteLine();
+                Console.WriteLine();
+            }
+        }
+
+        /// <summary>
+        /// Creates directory and generates Xml TestReport
+        /// </summary>
+        /// <param name="assembliesElement"></param>
+        /// <param name="xmlTestResultName"></param>
+        private void CreateXmlTestResultFile(XElement assembliesElement, string xmlTestResultName)
+        {
+            FileInfo fi = new FileInfo(xmlTestResultName);
+            DirectoryInfo directory = fi.Directory;
+
+            if (!directory.Exists)
+            {
+                Directory.CreateDirectory(directory.FullName);
+            }
+
+            using (var stream = File.OpenWrite(fi.FullName))
+            {
+                assembliesElement.Save(stream);
+                Console.WriteLine($"   Test report generated: {stream.Name}");
             }
         }
     }

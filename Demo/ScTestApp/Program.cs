@@ -22,12 +22,12 @@ namespace ScTestApp
                 return true;
             };
             runner.TestCaseFilter = testCaseFilter;
-            runner.Start();
+            runner.Start(xmlTestReportName: @"C:\XunitTestReport\TestReportUsingTestCaseFilter.xml");
 
             // Executing tests using typeName, i.e. only runnign test set which is called "TestSetAlwaysFailing"
             runner.TestCaseFilter = null;
-            string s = typeof(TestSetAlwaysFailing).GetTypeInfo().FullName;
-            runner.Start(s);
+            string typeName = typeof(TestSetAlwaysFailing).GetTypeInfo().FullName;
+            runner.Start(typeName: typeName, xmlTestReportName: @"C:\XunitTestReport\TestReportUsingTypeName.xml");
         }
     }
 }
