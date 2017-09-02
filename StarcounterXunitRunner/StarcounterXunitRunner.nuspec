@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>Starcounter.Xunit.Runner</id>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <title>Starcounter.Xunit.Runner</title>
     <authors>ubbeK</authors>
     <owners>Starcounter</owners>
     <projectUrl>https://github.com/Starcounter/Starcounter.Xunit.Runner</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Xunit console runner for executing tests in the same domain as the Starcounter database</description>
-    <releaseNotes>Functionality added to generate Xunit2 xml reports</releaseNotes>
+    <releaseNotes>weaver.ignore updated with StarcounterXunitRunner.dll</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>Starcounter Xunit</tags>
     <dependencies>
