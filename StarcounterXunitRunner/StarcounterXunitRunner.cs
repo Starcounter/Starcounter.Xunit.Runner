@@ -251,6 +251,8 @@ namespace Starcounter.Xunit.Runner
             using (var stream = File.OpenWrite(fullPath))
             {
                 assembliesElement.Save(stream);
+                //Fix for removing the extra end tage which is added if the File already exists
+                stream.SetLength(stream.Position);
                 Console.WriteLine($"   Test report generated: {stream.Name}");
             }
         }
