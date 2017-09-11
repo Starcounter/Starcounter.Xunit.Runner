@@ -248,11 +248,14 @@ namespace Starcounter.Xunit.Runner
                 fullPath += ".xml";
             }
 
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+
             using (var stream = File.OpenWrite(fullPath))
             {
                 assembliesElement.Save(stream);
-                //Fix for removing the extra end tage which is added if the File already exists
-                stream.SetLength(stream.Position);
                 Console.WriteLine($"   Test report generated: {stream.Name}");
             }
         }

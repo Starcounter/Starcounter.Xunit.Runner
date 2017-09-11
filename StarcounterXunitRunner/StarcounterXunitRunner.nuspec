@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Starcounter.Xunit.Runner</id>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <title>Starcounter.Xunit.Runner</title>
     <authors>ubbeK</authors>
     <owners>Starcounter</owners>
