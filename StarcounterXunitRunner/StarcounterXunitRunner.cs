@@ -248,12 +248,14 @@ namespace Starcounter.Xunit.Runner
                 fullPath += ".xml";
             }
 
-            if (File.Exists(fullPath))
+            var fi = new FileInfo(fullPath);
+
+            if (fi.Exists)
             {
-                File.Delete(fullPath);
+                fi.Delete();
             }
 
-            using (var stream = File.OpenWrite(fullPath))
+            using (var stream = File.OpenWrite(fi.FullName))
             {
                 assembliesElement.Save(stream);
                 Console.WriteLine($"   Test report generated: {stream.Name}");
